@@ -1,13 +1,13 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
- name: springboot-docker-deployment
+ name: springboot-docker
 spec:
  replicas: 3
   template:
    metadata:
     labels:
-        app: springboot-docker
+        run: springboot-docker
     spec:
       containers:
       - name: springboot-docker
