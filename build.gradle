@@ -18,7 +18,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'docker'
 
 jar {
-	baseName = 'docker-demo'
+	baseName = 'kubernetes-docker-demo'
 	version = '0.0.1-SNAPSHOT'
 }
 
@@ -37,18 +37,18 @@ dependencies {
 
 group = 'elizabetht'
 
-task createDocker(type: Docker, dependsOn: build) {
-    push = true
-    applicationName = jar.baseName
-    tagVersion = 'latest'
-    dockerfile = file('src/main/docker/Dockerfile')
-    doFirst {
-        copy {
-            from jar
-            into stageDir
-        }
-    }
-}
+//task createDocker(type: Docker, dependsOn: build) {
+//    push = true
+//    applicationName = jar.baseName
+//    tagVersion = 'latest'
+//    dockerfile = file('src/main/docker/Dockerfile')
+//    doFirst {
+//        copy {
+//            from jar
+//            into stageDir
+//        }
+//    }
+//}
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
@@ -66,8 +66,8 @@ task buildDocker(type: Exec) {
         }
     }
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        commandLine 'cmd', '/c', 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/docker-demo', 'build/docker/'
+        commandLine 'cmd', '/c', 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-docker-demo', 'build/docker/'
     } else {
-        commandLine 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/docker-demo', 'build/docker/'
+        commandLine 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-docker-demo', 'build/docker/'
     }
 }

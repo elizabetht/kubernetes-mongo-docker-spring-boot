@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: springboot-docker-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: springboot-docker
+    spec:
+      containers:
+      - name: springboot-docker
+        image: elizabetht/kubernetes-docker-demo:latest
+        ports:
+        - containerPort: 8080
