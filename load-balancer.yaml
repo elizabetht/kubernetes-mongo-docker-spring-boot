@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: springboot-docker-deployment
+  name: springboot-docker-service
 spec:
   ports:
     - port: 8080
-      targetPort: 9090
+      targetPort: 8080
   selector:
     app: springboot-docker
   type: LoadBalancer
