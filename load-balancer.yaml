@@ -7,7 +7,7 @@ spec:
     - port: 8080
       targetPort: 9090
   selector:
-    app: springboot-docker-deployment
+    app: springboot-docker
   type: LoadBalancer
   loadBalancerSourceRanges:
   - 10.180.0.0/16
