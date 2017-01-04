@@ -1,0 +1,73 @@
+buildscript {
+	ext {
+		springBootVersion = '1.4.3.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath('se.transmode.gradle:gradle-docker:1.2')
+	}
+}
+
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'docker'
+
+jar {
+	baseName = 'docker-demo'
+	version = '0.0.1-SNAPSHOT'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.codehaus.groovy:groovy')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+group = 'elizabetht'
+
+task createDocker(type: Docker, dependsOn: build) {
+    push = true
+    applicationName = jar.baseName
+    tagVersion = 'latest'
+    dockerfile = file('src/main/docker/Dockerfile')
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+    }
+}
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+task buildDocker(type: Exec) {
+    doFirst {
+        copy {
+            from "src/main/docker/"
+            into "build/docker/"
+            include "*"
+        }
+        copy {
+            from "build/libs"
+            into "build/docker/"
+            include "*.jar*"
+        }
+    }
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'cmd', '/c', 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/docker-demo', 'build/docker/'
+    } else {
+        commandLine 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/docker-demo', 'build/docker/'
+    }
+}
