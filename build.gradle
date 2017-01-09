@@ -32,6 +32,7 @@ repositories {
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter-web')
 	compile('org.codehaus.groovy:groovy')
+    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
@@ -52,7 +53,7 @@ group = 'elizabetht'
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
-task buildDocker(type: Exec) {
+task buildDockerImage(type: Exec) {
     doFirst {
         copy {
             from "src/main/docker/"
@@ -66,8 +67,16 @@ task buildDocker(type: Exec) {
         }
     }
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        commandLine 'cmd', '/c', 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-docker-demo', 'build/docker/'
+        commandLine 'cmd', '/c', 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-mongo-docker-demo', 'build/docker/'
     } else {
-        commandLine 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-docker-demo', 'build/docker/'
+        commandLine 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-mongo-docker-demo', 'build/docker/'
+    }
+}
+
+task pushDockerImage(type: Exec) {
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'cmd', '/c', 'docker', 'push', 'elizabetht/kubernetes-mongo-docker-demo'
+    } else {
+        commandLine 'docker', 'push', 'elizabetht/kubernetes-mongo-docker-demo'
     }
 }
