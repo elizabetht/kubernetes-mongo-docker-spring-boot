@@ -44,8 +44,8 @@ spec:
           containerPort: 27017
           hostPort: 27017
         volumeMounts:
-            - name: mongo-persistent-storage
-              mountPath: /data/db
+          - name: mongo-persistent-storage
+            mountPath: /data/db
       volumes:
         - name: mongo-persistent-storage
           persistentVolumeClaim:
@@ -121,9 +121,29 @@ spec:
       storage: 4Gi
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: elasticsearch
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  labels:
+    component: elasticsearch
+spec:
+  type: LoadBalancer
+  selector:
+    component: elasticsearch
+  ports:
+  - name: http
+    port: 9200
+    protocol: TCP
+---
+apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: es
+  name: elasticsearch
   labels:
     component: elasticsearch
 spec:
@@ -140,7 +160,7 @@ spec:
           capabilities:
             add:
               - IPC_LOCK
-        image: quay.io/pires/docker-elasticsearch-kubernetes:1.7.1-4
+        image: quay.io/pires/docker-elasticsearch-kubernetes:2.4.1
         env:
         - name: KUBERNETES_CA_CERTIFICATE_FILE
           value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -149,7 +169,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: "CLUSTER_NAME"
-          value: "myesdb"
+          value: "elasticsearch"
         - name: "DISCOVERY_SERVICE"
           value: "elasticsearch"
         - name: NODE_MASTER
@@ -158,12 +178,11 @@ spec:
           value: "true"
         - name: HTTP_ENABLE
           value: "true"
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms1g -Xmx1g"
         ports:
         - containerPort: 9200
           name: http
-          protocol: TCP
-        - containerPort: 9300
-          name: transport
           protocol: TCP
         volumeMounts:
         - mountPath: /data
@@ -173,25 +192,3 @@ spec:
         persistentVolumeClaim:
           claimName: elastic-search-persistent-storage-claim
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: elasticsearch
-  labels:
-    component: elasticsearch
-spec:
-  type: LoadBalancer
-  selector:
-    component: elasticsearch
-  ports:
-  - name: http
-    port: 9200
-    protocol: TCP
-  - name: transport
-    port: 9300
-    protocol: TCP
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: elasticsearch
