@@ -160,7 +160,7 @@ spec:
           capabilities:
             add:
               - IPC_LOCK
-        image: quay.io/pires/docker-elasticsearch-kubernetes:2.4.1
+        image: quay.io/pires/docker-elasticsearch-kubernetes:2.1.0
         env:
         - name: KUBERNETES_CA_CERTIFICATE_FILE
           value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -192,3 +192,59 @@ spec:
         persistentVolumeClaim:
           claimName: elastic-search-persistent-storage-claim
 ---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: kibana
+  namespace: default
+  labels:
+    component: elk
+    role: kibana
+spec:
+  replicas: 1
+  selector:
+    component: elk
+    role: kibana
+  template:
+    metadata:
+      labels:
+        component: elk
+        role: kibana
+    spec:
+      serviceAccount: elk
+      containers:
+      - name: kibana
+        image: quay.io/pires/docker-kibana:4.3.0
+        env:
+        - name: KIBANA_ES_URL
+          value: "http://elasticsearch.default.svc.cluster.local:9200"
+        - name: KUBERNETES_TRUST_CERT
+          value: "true"
+        ports:
+        - containerPort: 5601
+          name: http
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: default
+  labels:
+    component: elk
+    role: kibana
+spec:
+  type: LoadBalancer
+  selector:
+    component: elk
+    role: kibana
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5601
+    protocol: TCP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: elk
