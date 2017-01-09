@@ -38,19 +38,6 @@ dependencies {
 
 group = 'elizabetht'
 
-//task createDocker(type: Docker, dependsOn: build) {
-//    push = true
-//    applicationName = jar.baseName
-//    tagVersion = 'latest'
-//    dockerfile = file('src/main/docker/Dockerfile')
-//    doFirst {
-//        copy {
-//            from jar
-//            into stageDir
-//        }
-//    }
-//}
-
 import org.apache.tools.ant.taskdefs.condition.Os
 
 task buildDockerImage(type: Exec) {
@@ -70,13 +57,5 @@ task buildDockerImage(type: Exec) {
         commandLine 'cmd', '/c', 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-mongo-docker-demo', 'build/docker/'
     } else {
         commandLine 'docker', 'build', '-f', 'build/docker/Dockerfile', '-t', 'elizabetht/kubernetes-mongo-docker-demo', 'build/docker/'
-    }
-}
-
-task pushDockerImage(type: Exec) {
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        commandLine 'cmd', '/c', 'docker', 'push', 'elizabetht/kubernetes-mongo-docker-demo'
-    } else {
-        commandLine 'docker', 'push', 'elizabetht/kubernetes-mongo-docker-demo'
     }
 }

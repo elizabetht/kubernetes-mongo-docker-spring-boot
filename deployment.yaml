@@ -11,7 +11,7 @@ spec:
     spec: 
       containers: 
         - 
-          image: elizabetht/kubernetes-docker-demo:latest
+          image: elizabetht/kubernetes-mongo-docker-demo:latest
           name: springboot-docker
           ports: 
             - 
