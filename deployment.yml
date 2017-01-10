@@ -134,96 +134,71 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    component: elasticsearch
+    component: elk
   ports:
   - name: http
     port: 9200
     protocol: TCP
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: extensions/v1beta1
+kind: Deployment
 metadata:
-  name: elasticsearch
+  name: elasticsearch-kibana
   labels:
-    component: elasticsearch
+    component: elk
 spec:
-  replicas: 1
   template:
     metadata:
       labels:
-        component: elasticsearch
+        component: elk
     spec:
       serviceAccount: elasticsearch
       containers:
       - name: es
         securityContext:
+          privileged: true
           capabilities:
             add:
               - IPC_LOCK
-        image: quay.io/pires/docker-elasticsearch-kubernetes:2.1.0
+        image: elasticsearch:5.1.1
+        imagePullPolicy: Always
         env:
-        - name: KUBERNETES_CA_CERTIFICATE_FILE
-          value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
         - name: "CLUSTER_NAME"
-          value: "elasticsearch"
-        - name: "DISCOVERY_SERVICE"
-          value: "elasticsearch"
+          value: "myesdb"
         - name: NODE_MASTER
+          value: "true"
+        - name: NODE_INGEST
           value: "true"
         - name: NODE_DATA
           value: "true"
         - name: HTTP_ENABLE
           value: "true"
         - name: "ES_JAVA_OPTS"
-          value: "-Xms1g -Xmx1g"
+          value: "-Xms256m -Xmx256m"
         ports:
-        - containerPort: 9200
-          name: http
+        - containerPort: 9300
+          name: transport
           protocol: TCP
         volumeMounts:
         - mountPath: /data
           name: elastic-search-persistent-storage
-      volumes:
-      - name: elastic-search-persistent-storage
-        persistentVolumeClaim:
-          claimName: elastic-search-persistent-storage-claim
----
-apiVersion: v1
-kind: ReplicationController
-metadata:
-  name: kibana
-  namespace: default
-  labels:
-    component: elk
-    role: kibana
-spec:
-  replicas: 1
-  selector:
-    component: elk
-    role: kibana
-  template:
-    metadata:
-      labels:
-        component: elk
-        role: kibana
-    spec:
-      serviceAccount: elk
-      containers:
       - name: kibana
-        image: quay.io/pires/docker-kibana:4.3.0
+        image: kibana:5.1.1
         env:
-        - name: KIBANA_ES_URL
-          value: "http://elasticsearch.default.svc.cluster.local:9200"
         - name: KUBERNETES_TRUST_CERT
           value: "true"
         ports:
         - containerPort: 5601
           name: http
           protocol: TCP
+      volumes:
+      - name: elastic-search-persistent-storage
+        persistentVolumeClaim:
+          claimName: elastic-search-persistent-storage-claim
 ---
 apiVersion: v1
 kind: Service
@@ -237,7 +212,6 @@ spec:
   type: LoadBalancer
   selector:
     component: elk
-    role: kibana
   ports:
   - name: http
     port: 80
